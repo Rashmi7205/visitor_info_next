@@ -35,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
+import Success from "./Success";
 
 const VisitorForm = () => {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -43,62 +43,61 @@ const VisitorForm = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const { id } = useParams();
-
+  const [success, setSuccess] = useState(false);
   const govtIdProofs = [
     {
       name: "Aadhaar Card",
-      issuer: "Unique Identification Authority of India (UIDAI)"
+      issuer: "Unique Identification Authority of India (UIDAI)",
     },
     {
       name: "Passport",
-      issuer: "Government of India"
+      issuer: "Government of India",
     },
     {
       name: "PAN Card",
-      issuer: "Income Tax Department"
+      issuer: "Income Tax Department",
     },
     {
       name: "Voter ID Card",
-      issuer: "Election Commission of India"
+      issuer: "Election Commission of India",
     },
     {
       name: "Driving License",
-      issuer: "Regional Transport Office (RTO)"
+      issuer: "Regional Transport Office (RTO)",
     },
     {
       name: "Ration Card",
-      issuer: "State Government"
+      issuer: "State Government",
     },
     {
       name: "Employee ID Card",
-      issuer: "Government or Public Sector Units (PSUs)"
+      issuer: "Government or Public Sector Units (PSUs)",
     },
     {
       name: "Pension Card",
-      issuer: "Government of India"
+      issuer: "Government of India",
     },
     {
       name: "NREGA Job Card",
-      issuer: "Ministry of Rural Development"
+      issuer: "Ministry of Rural Development",
     },
     {
       name: "Health Insurance Smart Card",
-      issuer: "Ministry of Health"
+      issuer: "Ministry of Health",
     },
     {
       name: "Bank Passbook with Photograph",
-      issuer: "Banks"
+      issuer: "Banks",
     },
     {
       name: "Birth Certificate",
-      issuer: "Local Municipal Authorities"
+      issuer: "Local Municipal Authorities",
     },
     {
       name: "Arms License",
-      issuer: "District Magistrate or State Home Department"
-    }
-  ]
-
+      issuer: "District Magistrate or State Home Department",
+    },
+  ];
 
   const [formData, setFormData] = useState({
     name: "",
@@ -194,7 +193,6 @@ const VisitorForm = () => {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(new FormData(e.target));
     if (validate()) {
       // Form is valid, handle the form submission logic
 
@@ -241,6 +239,7 @@ const VisitorForm = () => {
         );
         toast.dismiss();
         toast.success(response.data.message);
+        setSuccess(true);
       } catch (error) {
         console.error("Error:", error);
         toast.error(error.message);
@@ -432,22 +431,24 @@ const VisitorForm = () => {
             <IdCard size={15} />
             Government ID Details
           </Label>
-          <Select onValueChange={(val)=>{
-            setFormData({
-              ...formData,
-              govId:val
-            })
-          }}>
+          <Select
+            onValueChange={(val) => {
+              setFormData({
+                ...formData,
+                govId: val,
+              });
+            }}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select Id Proof" />
             </SelectTrigger>
             <SelectContent>
-              {
-                govtIdProofs.map((id)=><SelectItem key={id.name} value={id.name} className="py-0.5">
-                     <p className="text-bold w-full">{id.name}</p>
-                     <p className="text-xs w-full text-gray-400">{id.issuer}</p>
-                </SelectItem>)
-              }
+              {govtIdProofs.map((id) => (
+                <SelectItem key={id.name} value={id.name} className="py-0.5">
+                  <p className="text-bold w-full">{id.name}</p>
+                  <p className="text-xs w-full text-gray-400">{id.issuer}</p>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           {errors.govId && (
@@ -598,6 +599,9 @@ const VisitorForm = () => {
           </Button>
         </div>
       </form>
+      <Success success={success} handleClick={()=>{
+        setSuccess(false);
+      }}/>
     </div>
   );
 };
