@@ -14,7 +14,6 @@ const saveVisitorData = async (req, res) => {
     const {
       name,
       email,
-      mobile,
       contactPerson,
       govId,
       visitPurpose,
@@ -37,7 +36,8 @@ const saveVisitorData = async (req, res) => {
       JSON.stringify(documentsPaths.map(doc => path.join('uploads', doc))),
       id
     ]);
-
+    const [dbRes] = await db.query(`SELECT mobile from visitorinfo where id=${id}`);
+    const mobile = dbRes[0].mobile;
     const html = `
        <!DOCTYPE html>
 <html lang="en">
@@ -66,6 +66,7 @@ const saveVisitorData = async (req, res) => {
     <div style="margin-bottom: 10px;">
       <a href="${process.env.SERVER_URL}/uploads/${doc}" download="${doc}" style="display: inline-block; padding: 10px 15px; background-color: #4A90E2; color: #ffffff; text-decoration: none; border-radius: 4px;">Download ${doc}</a>
     </div>`).join('') : '<p>None</p>'}
+    <a href="${process.env.CLIENT_URL}/visit-approved/${id}" style="display: inline-block; padding: 10px 15px; background-color: #54bd68; color: #ffffff; text-decoration: none; border-radius: 4px;">Approve</a>
   </div>
 </body>
 </html>
@@ -78,6 +79,28 @@ const saveVisitorData = async (req, res) => {
     res.status(500).json({ message: 'Error saving form data' });
   }
 }
+
+const approveVisit = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const [visitExist] = await db.query(`SELECT * FROM visitorinfo WHERE id=${id}`);
+    if(visitExist.length > 0){
+      const [result] = await db.query(`UPDATE visitorinfo SET approved='yes' WHERE id=${id}`);
+      res.status(200).json({success:true,message: 'Visit approved successfully' });
+
+    }else{
+      res.status(404).json({success:false,message: 'Visit not found' });
+    }
+  } catch (error) {
+      console.log(error);
+      res.status(501).json({success:false,message:"Internal Server Error"});
+  }
+}
+
+
+
+
 export {
-  saveVisitorData
+  saveVisitorData,
+  approveVisit
 }

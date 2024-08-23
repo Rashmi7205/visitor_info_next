@@ -1,6 +1,6 @@
 "use client"
 import { Input } from "@/components/ui/input";
-import { SendHorizonal, TrainTrack } from "lucide-react";
+import { Phone, SendHorizonal, TrainTrack } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -81,12 +81,15 @@ const VisitorBtn = () => {
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Get otp for visit</DialogTitle>
-            <DialogDescription>Get otp for further process</DialogDescription>
+            <DialogTitle>Get OTP for visit</DialogTitle>
+            <DialogDescription>Get OTP for further process</DialogDescription>
           </DialogHeader>
           {!otpGenerated ? (
             <div className="flex flex-col gap-4 p-4">
-              <Label>Enter Your Mobile Number</Label>
+              <Label className="flex items-center gap-.5">
+                <Phone size={14}/>
+                Enter Your Mobile Number
+                </Label>
               <Input
                 type="text"
                 placeholder="Mobile Number"
