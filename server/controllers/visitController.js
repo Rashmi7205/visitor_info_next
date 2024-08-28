@@ -1,8 +1,7 @@
 import db from "../config/db.js";
 import path from 'path';
-import { sendEmail } from "../helper/index.js";
+import sendSms from "../middleware/sendSms.js";
 const saveVisitorData = async (req, res) => {
-
   try {
     const { id } = req.params;
     if (!id) {
@@ -36,43 +35,8 @@ const saveVisitorData = async (req, res) => {
       JSON.stringify(documentsPaths.map(doc => path.join('uploads', doc))),
       id
     ]);
-    const [dbRes] = await db.query(`SELECT mobile from visitorinfo where id=${id}`);
-    const mobile = dbRes[0].mobile;
-    const html = `
-       <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; padding: 20px; background-color: #f4f4f4;">
-<div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
-<h1 style="color: #4A90E2; font-size: 24px; border-bottom: 2px solid #4A90E2; padding-bottom: 10px; margin-bottom: 20px;">Visitor Information</h1>
-
-    <!-- Correct Image URL -->
-    <img src="${process.env.SERVER_URL}/uploads/${capturedImage}" alt="Captured Image" style="max-width: 100%; height: auto; display: block; margin-bottom: 20px;" />
-
-    <p style="margin: 10px 0;"><strong>ID:</strong> ${id}</p>
-    <p style="margin: 10px 0;"><strong>Name:</strong> ${name}</p>
-    <p style="margin: 10px 0;"><strong>Email:</strong> ${email}</p>
-    <p style="margin: 10px 0;"><strong>Mobile:</strong> ${mobile}</p>
-    <p style="margin: 10px 0;"><strong>Contact Person:</strong> ${contactPerson}</p>
-    <p style="margin: 10px 0;"><strong>Government ID:</strong> ${govId}</p>
-    <p style="margin: 10px 0;"><strong>Visit Purpose:</strong> ${visitPurpose}</p>
-    <p style="margin: 10px 0;"><strong>Number of Visitors:</strong> ${noOfVisitors}</p>
-
-    <p style="margin: 10px 0;"><strong>Documents:</strong></p>
-    ${documentsPaths.length ? documentsPaths.map(doc => `
-    <div style="margin-bottom: 10px;">
-      <a href="${process.env.SERVER_URL}/uploads/${doc}" download="${doc}" style="display: inline-block; padding: 10px 15px; background-color: #4A90E2; color: #ffffff; text-decoration: none; border-radius: 4px;">Download ${doc}</a>
-    </div>`).join('') : '<p>None</p>'}
-    <a href="${process.env.CLIENT_URL}/visit-approved/${id}" style="display: inline-block; padding: 10px 15px; background-color: #54bd68; color: #ffffff; text-decoration: none; border-radius: 4px;">Approve</a>
-  </div>
-</body>
-</html>
-
-      `;
-    await sendEmail("rashmiranjanbehera8260@gmail.com", "New Visitor Info Added", html);
+    const approveMessage = `Dear ${process.env.ADMIN_NAME},A new visit request has been registered for ${name}. The contact person for this visit is contact. Please review and approve the visit using the following link:${process.env.CLIENT_URL}/visit-approved/${id}.Thank you! Ikontel Solutions Pvt.Ltd.`;
+    await sendSms(process.env.ADMIN_PHONE_NUMBER,approveMessage);
     res.status(200).json({ message: 'Success', id: result.insertId });
   } catch (error) {
     console.error('Error saving form data:', error);
@@ -83,24 +47,53 @@ const saveVisitorData = async (req, res) => {
 const approveVisit = async (req, res) => {
   try {
     const id = req.params.id;
+    const date = req.body.date;
     const [visitExist] = await db.query(`SELECT * FROM visitorinfo WHERE id=${id}`);
+    const user = visitExist[0];
+    if (user.approved === 'yes') {
+      return res.status(202).json({ success: false, message: 'This visit has already been approved.' });
+    }
     if(visitExist.length > 0){
-      const [result] = await db.query(`UPDATE visitorinfo SET approved='yes' WHERE id=${id}`);
+      const [result] = await db.query(`UPDATE visitorinfo SET approved='yes',visit_date='${date}' WHERE id=${id}`);
+      const message = `Dear ${user.name}, ${user.contact_person} has approved your visit request. #url# please display the e-visitor pass to the reception which is in the link. Thank You - Ikontel Soluions Pvt. Ltd. Team`;
+
+      // await sendSms(user.mobile, message);
+
       res.status(200).json({success:true,message: 'Visit approved successfully' });
 
     }else{
       res.status(404).json({success:false,message: 'Visit not found' });
     }
   } catch (error) {
-      console.log(error);
       res.status(501).json({success:false,message:"Internal Server Error"});
   }
 }
-
-
-
+//get visitors info by id
+const getVisitorInfoById = async (req,res)=>{
+  try {
+    const {id} = req.params;
+    if(!id){
+      return res.status(404).json({success:false,message: 'Missing Required Param id' });
+    }
+    const [result] = await db.query(`SELECT * FROM visitorinfo WHERE id=${id}`);
+    if(result.length > 0){
+      return res.status(200).json({
+        success: true,
+        data: result[0],
+      });
+    }
+    return res.status(401).json({
+      success: false,
+      message:"Cannot Find Record of this id"
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({success:false,message:"Internal Server Error"});
+  }
+}
 
 export {
   saveVisitorData,
-  approveVisit
-}
+  approveVisit,
+  getVisitorInfoById
+} 

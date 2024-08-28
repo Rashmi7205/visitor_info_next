@@ -11,11 +11,13 @@ import axios from 'axios';
 // }
 const sendSms = async (to,body)=>{
   try {
-    const { data } = await axios.post(`${process.env.SMS_PROVIDER_URL}?login=${process.env.SMS_PROVIDER_USER_NAME}&passwd=${process.env.SMS_PROVIDER_USER_PASS}&version=v1.0&msisdn=91${to}&msg_type=text&msg=${body}&sender_id=${process.env.SMS_PROVIDER_SENDER_ID}`);
-    console.log(data);
+    const url = `https://msg2all.com/TRANSAPI/sendsms.jsp?login=${process.env.SMS_PROVIDER_USER_NAME}&passwd=${process.env.SMS_PROVIDER_USER_PASS}&version=v1.0&msisdn=91${to}&msg_type=text&msg=${body}&sender_id=${process.env.SMS_PROVIDER_SENDER_ID}`;
+   const { data } = await axios.post(url);
+    return data.result.status.statusCode=="0"?true:false;
   } catch (error) {
     console.log(error);
-  }
+    return false;
+}
 }
 
 export default sendSms;

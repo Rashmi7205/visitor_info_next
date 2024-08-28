@@ -65,10 +65,7 @@ export const sendOtp = async (req,res)=>{
   }
   const otp = generateOTP();
   const otpSentTime = getCurrentTimestamp();
-  const message = `Dear visitor ,Welcome to Ikontel Solutions Pvt. Ltd.
-  .Please Use ${otp} to verify your Mobile number .
-  Thank You Ikontel Solutions Pvt. Ltd. Team.
-  `;
+  const message = `Dear visitor ,Welcome to Ikontel Solutions Pvt. Ltd. .Please Use ${otp} to verify your Mobile number. Thank You Ikontel Solutions Pvt.Ltd.Team.`;
   try {
     const response = await sendSms(mobile, message);
     if(response){

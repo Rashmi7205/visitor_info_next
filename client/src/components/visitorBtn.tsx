@@ -17,12 +17,14 @@ import { Label } from "./ui/label";
 import toast from "react-hot-toast";
 import axios from "axios";
 import OTPInput from "react-otp-input";
+import ResendOtpBtn from "./ReSendOtpBtn";
 const VisitorBtn = () => {
   const [otpGenerated,setOtpGenerated] = useState(false);
   const [otpInput, setOtpInput] = useState("");
   const [mobile,setMobile] = useState("");
   const[id,setId]=useState("");
   const router = useRouter();
+
 
   const generateOtp = async()=>{
     if(!mobile || mobile.length != 10){
@@ -68,6 +70,9 @@ const VisitorBtn = () => {
         console.log(error);
         toast.error("Failed To Verify OTP");
     }
+  }
+  const resendOtp = ()=>{
+      generateOtp();
   }
 
     return (
@@ -130,12 +135,15 @@ const VisitorBtn = () => {
                 Get OTP
               </Button>
             ) : (
+              <>
+              <ResendOtpBtn onResend={resendOtp}/>
               <Button
                 className="bg-blue-600 hover:bg-blue-800"
                 onClick={verifyOtp}
               >
                 Verify OTP
               </Button>
+              </>
             )}
           </DialogFooter>
         </DialogContent>
